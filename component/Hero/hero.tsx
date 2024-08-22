@@ -34,11 +34,11 @@ export default function Hero() {
     setPhoneNumber(event.target.value);
   };
 
-  const fetchData = async () => {
+  const fetchData = async (phoneNumber: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/api20/lookup?token=77078d21-79ef-439b-8ae6-9efc9726475a&phone=${phoneNumber}`, {
+      const response = await fetch(`https://api.anycomplete.com/api20/lookup?token=77078d21-79ef-439b-8ae6-9efc9726475a&phone=${phoneNumber}`, {
         method: 'GET',
       });
 
@@ -46,8 +46,12 @@ export default function Hero() {
         throw new Error('Failed to fetch data');
       }
 
-      const result: ApiResponse[] = await response.json();
-      setData(result[0]);
+      const result = await response.json();
+      if (Array.isArray(result)) {
+        setData(result[0]);
+      } else {
+        setData(result);
+      }
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -128,8 +132,13 @@ export default function Hero() {
                 'aria-label': 'Enter Mobile Number',
               }}
             />
-            <Button variant="contained" color="primary" onClick={fetchData} disabled={loading}>
-              Start
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => fetchData(phoneNumber)}
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Start now'}
             </Button>
           </Stack>
         </Stack>
@@ -145,53 +154,63 @@ export default function Hero() {
             <Typography variant="h6" color='#074786' fontWeight='bold' gutterBottom>
               Names people have saved your number as:
             </Typography>
-            <List>
-              {data.names.map((name, index) => (
-                <ListItem key={index}>
-                  <ListItemText primary={name} />
-                </ListItem>
-              ))}
-            </List>
+            {data.names && data.names.length > 0 ? (
+              <List>
+                {data.names.map((name, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={name} />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography>No names found.</Typography>
+            )}
 
             <Divider sx={{ my: 2 }} />
 
             <Typography variant="h6" color='#074786' fontWeight='bold' gutterBottom>
               Your Phone Numbers:
             </Typography>
-            <List>
-              <ListItem>
-                <IconButton aria-label="call" href={`tel:${data.phone}`}>
-                  <PhoneIcon />
-                </IconButton>
-                <ListItemText primary={`Primary: ${data.phone}`} />
-              </ListItem>
-              {data.more_phones.map((phone, index) => (
-                <ListItem key={index}>
-                  <IconButton aria-label="call" href={`tel:${phone}`}>
+            {data.phone && (
+              <List>
+                <ListItem>
+                  <IconButton aria-label="call" href={`tel:${data.phone}`}>
                     <PhoneIcon />
                   </IconButton>
-                  <ListItemText primary={`Other: ${phone}`} />
+                  <ListItemText primary={`Primary: ${data.phone}`} />
                 </ListItem>
-              ))}
-            </List>
+                {data.more_phones && data.more_phones.length > 0 && data.more_phones.map((phone, index) => (
+                  <ListItem key={index}>
+                    <IconButton aria-label="call" href={`tel:${phone}`}>
+                      <PhoneIcon />
+                    </IconButton>
+                    <ListItemText primary={`Other: ${phone}`} />
+                  </ListItem>
+                ))}
+              </List>
+            )}
 
             <Divider sx={{ my: 2 }} />
 
             <Typography variant="h6" color='#074786' fontWeight='bold' gutterBottom>
               Social Media Profiles:
             </Typography>
-            <List>
-              {data.facebook_profiles.map((profile, index) => (
-                <ListItem key={index}>
-                  <IconButton aria-label="visit" href={profile} target="_blank" rel="noopener">
-                    <FacebookIcon />
-                  </IconButton>
-                  <Link href={profile} target="_blank" rel="noopener">
-                    Facebook Profile
-                  </Link>
-                </ListItem>
-              ))}
-            </List>
+            {data.facebook_profiles && data.facebook_profiles.length > 0 ? (
+              <List>
+                {data.facebook_profiles.map((profile, index) => (
+                  <ListItem key={index}>
+                    <IconButton aria-label="visit" href={profile} target="_blank" rel="noopener">
+                      <FacebookIcon />
+                    </IconButton>
+                    <Link href={profile} target="_blank" rel="noopener">
+                      Facebook Profile
+                    </Link>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography>No social media profiles found.</Typography>
+            )}
           </Paper>
         )}
       </Container>
