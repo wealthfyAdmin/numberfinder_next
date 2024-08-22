@@ -7,6 +7,7 @@ interface User extends NextAuthUser {
 
 const authOptions: NextAuthOptions = {
   providers: [
+    
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
